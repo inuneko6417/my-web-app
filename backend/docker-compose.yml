@@ -6,17 +6,20 @@ volumes:
 services:
   web:
     build: .
+    working_dir: /backend
     command: bundle exec rails s -p 3001 -b '0.0.0.0'
     volumes:
       - .:/backend
+    env_file:
+      - .env
     environment:
+      - POSTGRES_HOST=db
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=user
+      - RAILS_ENV=development
     ports:
       - "3001:3001"
     depends_on:
-      - db
-    links:
       - db
 
   db:
@@ -26,4 +29,4 @@ services:
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=user
-      - POSTGRES_DB=myapi_development
+      - POSTGRES_DB=backend_development
