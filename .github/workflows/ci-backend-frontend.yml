@@ -16,7 +16,7 @@
 #       - name: Setup Ruby
 #         uses: ruby/setup-ruby@v1
 #         with:
-#           ruby-version: 3.1.4 # 使用しているRubyのバージョンを明示
+#           ruby-version: 3.4.8 # 使用しているRubyのバージョンを明示
 #           bundler-cache: true
 
 #       # バックエンドの依存関係をインストール
