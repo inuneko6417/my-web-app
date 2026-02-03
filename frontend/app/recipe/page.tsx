@@ -8,6 +8,15 @@ export default function RecipeExtractorPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const videoId = (() => {
+    try {
+      return new URL(youtubeUrl).searchParams.get('v') ?? '';
+    } catch {
+      return '';
+    }
+  })();
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -33,27 +42,31 @@ export default function RecipeExtractorPage() {
       // const data = await response.json();
       // setIngredients(data.ingredients);
 
-      // --- 仮のデータ処理 ---
-      await new Promise(resolve => setTimeout(resolve, 1500)); // 擬似的なローディング
-      if (youtubeUrl.includes('error')) {
-        throw new Error('テスト用のエラーが発生しました。別のURLをお試しください。');
-      }
-      setIngredients([
-        '鶏もも肉: 300g',
-        '玉ねぎ: 1個',
-        'にんじん: 1本',
-        'じゃがいも: 2個',
-        'カレールー: 1箱',
-        '水: 800ml',
-        'サラダ油: 大さじ1',
-      ]);
-      // --- 仮のデータ処理ここまで ---
+//       // --- 仮のデータ処理 ---
+//       await new Promise(resolve => setTimeout(resolve, 1500)); // 擬似的なローディング
+//       if (youtubeUrl.includes('error')) {
+//         throw new Error('テスト用のエラーが発生しました。別のURLをお試しください。');
+//       }
+//       setIngredients([
+//         '鶏もも肉: 300g',
+//         '玉ねぎ: 1個',
+//         'にんじん: 1本',
+//         'じゃがいも: 2個',
+//         'カレールー: 1箱',
+//         '水: 800ml',
+//         'サラダ油: 大さじ1',
+//       ]);
+//       // --- 仮のデータ処理ここまで ---
 
-    } catch (err: any) {
-      setError(err.message || '不明なエラーが発生しました。');
-    } finally {
-      setIsLoading(false);
-    }
+} catch (err: unknown) {
+  if (err instanceof Error) {
+    setError(err.message);
+  } else {
+    setError('不明なエラーが発生しました。');
+  }
+} finally {
+  setIsLoading(false);
+}
   };
 
   return (
@@ -103,6 +116,9 @@ export default function RecipeExtractorPage() {
           )}
         </div>
       )}
+      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8">
+        <p>{videoId}</p>
+      </div>
     </div>
   );
 }
