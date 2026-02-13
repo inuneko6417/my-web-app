@@ -8,6 +8,11 @@ export async function POST(req: Request) {
     const response = await ai.models.generateContent({
         model: "gemini-2.0-flash-lite",
         contents: prompt_post,
+        config: {
+          systemInstruction: [
+            '渡されたdescriptionの中から、レシピに必要な食材と分量、作り方を抽出してください。',
+          ],
+        },
       });
 
     return NextResponse.json({
