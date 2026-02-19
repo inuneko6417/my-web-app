@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: youtube-recipe
+  version: 1.0.0
+
+servers: []
+
+paths:
+  "/api/v1/recipes/from_youtube":
+    post:
+      summary: Create recipe from YouTube URL
+      tags:
+        - Api::V1::Recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                youtube_url:
+                  type: string
+              required:
+                - youtube_url
+            example:
+              youtube_url: https://www.youtube.com/watch?v=abcd1234
+      responses:
+        "200":
+          description: Recipe created or returned if already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  video_id:
+                    type: string
+                  youtube_url:
+                    type: string
+                  thumbnail_url:
+                    type: string
+                  ingredients:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        amount:
+                          type: string
+                      required:
+                        - name
+                        - amount
+                  steps:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - title
+                  - video_id
+                  - youtube_url
+                  - thumbnail_url
+                  - ingredients
+                  - steps
+              example:
+                title: 簡単オムライスの作り方
+                video_id: abcd1234
+                youtube_url: https://www.youtube.com/watch?v=abcd1234
+                thumbnail_url: https://img.youtube.com/vi/abcd1234/hqdefault.jpg
+                ingredients:
+                  - name: 卵
+                    amount: 2個
+                  - name: ご飯
+                    amount: 1杯
+                steps:
+                  - 卵を溶く
+                  - ご飯を炒める
+                  - 包んで完成
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: youtube_url is required
+        "500":
+          description: Internal server error
