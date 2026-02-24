@@ -31,6 +31,7 @@ gem "image_processing", "~> 1.2"
 gem "dotenv-rails", groups: %i[development test]
 
 gem 'rack-cors'
+gem 'httparty'
 
 group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
@@ -38,3 +39,5 @@ group :development, :test do
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
 end
+
+gem "ruby-openai", "~> 8.3"
