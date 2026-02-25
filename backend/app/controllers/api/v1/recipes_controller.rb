@@ -1,21 +1,37 @@
 class Api::V1::RecipesController < ApplicationController
+  def create
+    # 1. 概要欄をAIに渡して構造化データに変換
+    ingredients_data = RecipeParser.parse_ingredients(params[:description])
+
+    # 2. RecipeとIngredientsを同時に保存
+    @recipe = Recipe.new(recipe_params)
+
+    if @recipe.save
+      ingredients_data.each do |item|
+        # ここで「食材ごと」にDB保存される
+        @recipe.ingredients.create(name: item["name"], amount: item["amount"])
+      end
+      render json: @recipe, include: :ingredients, status: :created
+    else
+      render json: @recipe.errors, status: :unprocessable_entity
+    end
+  end
+
   def youtube_api
     url = params[:youtube_url]
     return render json: { error: "youtube_url is required" }, status: :bad_request if url.blank?
-    video_id = extract_video_id(url)
-    recipe = Recipe.find_by(video_id: video_id)
-    return render json: recipe if recipe
 
-    # 仮データ（まずは動作確認用）
-    recipe = Recipe.create!(
-      title: "テストレシピ",
-      video_id: video_id,
-      youtube_url: url,
-      thumbnail_url: "",
-      steps: "手順1\n手順2"
-    )
-
-    render json: recipe
+    extractor = ::YoutubeRecipeExtractor.new(url)
+    begin
+      recipe = extractor.extract_and_save!
+      if recipe
+        render json: recipe.as_json(include: :ingredients)
+      else
+        render json: { error: "Failed to extract recipe. Please check Rails logs for details." }, status: :unprocessable_entity
+      end
+    rescue => e
+      render json: { error: e.message }, status: :internal_server_error
+    end
   end
 
   private

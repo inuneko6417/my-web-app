@@ -1,6 +1,9 @@
+require "uri"
+require "cgi"
+
 class YoutubeRecipeExtractor
   YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/videos"
-  GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent"
+  GEMINI_API_URL  = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent"
 
   def initialize(url)
     @url = url
@@ -8,61 +11,46 @@ class YoutubeRecipeExtractor
   end
 
   def extract_and_save!
-    Rails.logger.info "Starting extraction for URL: #{@url}, Video ID: #{@video_id}"
     return nil unless @video_id
 
-    # Check if recipe already exists
-    recipe = Recipe.find_by(video_id: @video_id)
-    if recipe
-      Rails.logger.info "Recipe already exists: #{recipe.id}"
-      return recipe
-    end
+    # 既存チェック
+    return Recipe.find_by(video_id: @video_id) if Recipe.exists?(video_id: @video_id)
 
-    # Fetch YouTube Details
     details = fetch_youtube_details
-    if details.nil?
-      Rails.logger.error "Failed to fetch YouTube details for Video ID: #{@video_id}"
-      return nil
-    end
+    return nil unless details
 
-    # Parse ingredients from description using AI
-    ingredients_data = parse_ingredients_with_ai(details[:description])
-    Rails.logger.info "Parsed ingredients: #{ingredients_data.inspect}"
+    ingredients = parse_ingredients(details[:description])
 
-    # Save Recipe
-    recipe = Recipe.create!(
-      title: details[:title],
-      video_id: @video_id,
-      youtube_url: @url,
-      thumbnail_url: details[:thumbnail_url],
-      steps: details[:description]
-    )
-
-    # Save Ingredients
-    ingredients_data.each do |ingredient|
-      recipe.ingredients.create!(
-        name: ingredient["name"],
-        quantity: ingredient["quantity"]
+    Recipe.transaction do
+      recipe = Recipe.create!(
+        title: details[:title],
+        video_id: @video_id,
+        youtube_url: @url,
+        thumbnail_url: details[:thumbnail_url],
+        steps: details[:description]
       )
-    end
 
-    recipe
-  rescue => e
-    Rails.logger.error "Extraction failed: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-    nil
+      ingredients.each do |item|
+        recipe.ingredients.create!(
+          name: item["name"],
+          quantity: item["quantity"]
+        )
+      end
+
+      recipe
+    end
   end
 
   private
 
   def extract_video_id(url)
     uri = URI.parse(url)
-    if uri.host == 'youtu.be'
-      uri.path[1..-1]
-    elsif uri.host&.include?('youtube.com')
-      CGI.parse(uri.query)["v"]&.first
+    return uri.path.delete_prefix("/") if uri.host == "youtu.be"
+
+    if uri.host&.include?("youtube.com")
+      CGI.parse(uri.query.to_s)["v"]&.first
     end
-  rescue
+  rescue URI::InvalidURIError
     nil
   end
 
@@ -73,27 +61,28 @@ class YoutubeRecipeExtractor
       key: ENV["YOUTUBE_API_KEY"]
     })
 
-    return nil unless response.success? && response["items"].any?
+    return nil unless response.success? && response["items"].present?
 
     snippet = response["items"].first["snippet"]
+
     {
       title: snippet["title"],
       description: snippet["description"],
-      thumbnail_url: snippet.dig("thumbnails", "high", "url") || snippet.dig("thumbnails", "default", "url")
+      thumbnail_url: snippet.dig("thumbnails", "high", "url")
     }
   end
 
-  def parse_ingredients_with_ai(description)
+  def parse_ingredients(description)
     prompt = <<~PROMPT
-      以下のYouTube動画の概要欄から、料理の食材とその分量を抽出してください。
-      結果は以下のJSON形式のみで返してください。他のテキストは含めないでください。
+      以下の文章から料理の材料と分量を抽出し、
+      次のJSON形式のみで返してください。
+
       {
         "ingredients": [
-          {"name": "食材名", "quantity": "分量"}
+          {"name": "材料名", "quantity": "分量"}
         ]
       }
 
-      概要欄:
       #{description}
     PROMPT
 
@@ -102,22 +91,17 @@ class YoutubeRecipeExtractor
       headers: { "Content-Type" => "application/json" },
       body: {
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          response_mime_type: "application/json"
-        }
+        generationConfig: { response_mime_type: "application/json" }
       }.to_json
     )
 
-    if response.success?
-      content = response.dig("candidates", 0, "content", "parts", 0, "text")
-      parsed = JSON.parse(content)
-      parsed["ingredients"] || parsed["results"] || parsed.values.find { |v| v.is_a?(Array) } || []
-    else
-      Rails.logger.error "Gemini API Error: #{response.body}"
-      []
-    end
-  rescue => e
-    Rails.logger.error "AI Parsing Error: #{e.message}"
+    return [] unless response.success?
+
+    content = response.dig("candidates", 0, "content", "parts", 0, "text")
+    json = JSON.parse(content.gsub(/```json|```/, "").strip)
+
+    json["ingredients"] || []
+  rescue
     []
   end
 end
