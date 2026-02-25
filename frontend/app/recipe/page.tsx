@@ -39,12 +39,23 @@ export default function RecipeExtractorPage() {
         `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.NEXT_PUBLIC_YOUTUBE_API_KEY}`
       );
       const data = await res.json();
-      setVideo(data.items[0].snippet);
+      if (data.items && data.items.length > 0) {
+        setVideo(data.items[0].snippet);
+      } else {
+        setError('動画が見つかりませんでした');
+      }
     } catch {
       setError('取得に失敗しました');
     } finally {
       setLoading(false);
     }
+  };
+
+  const seachIngredients = (description: string) => {
+    // 【材料】または 材料 から始まり、次のセクションの開始（【作り方】、■、httpなど）までの範囲を抽出
+    const regex = /(?:【材料】|材料)[\s\S]*?(?=(?:【作り方】|作り方|■|http|$))/i;
+    const match = description.match(regex);
+    return match ? match[0].trim() : '材料セクションが見つかりませんでした。';
   };
 
   return (
@@ -76,8 +87,13 @@ export default function RecipeExtractorPage() {
       </form>
       {videoInfo && (
         <div className="bg-white shadow-md rounded px-8 pt-6 pb-8">
-          <h2 className="text-xl font-bold mb-2">{videoInfo.title}</h2>
-          <p className="whitespace-pre-wrap">{videoInfo.description}</p>
+          <h2 className="text-xl font-bold mb-4">{videoInfo.title}</h2>
+          <div className="p-4 bg-gray-50 border rounded">
+            <h3 className="font-bold text-lg mb-2 text-blue-600">抽出された材料</h3>
+            <p className="whitespace-pre-wrap text-gray-800">
+              {seachIngredients(videoInfo.description)}
+            </p>
+          </div>
         </div>
       )}
     </div>
