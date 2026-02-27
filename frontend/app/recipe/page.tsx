@@ -2,14 +2,22 @@
 
 import { useState, FormEvent } from 'react';
 
-type VideoSnippet = {
+type Ingredient = {
+  id: number;
+  name: string;
+  quantity: string;
+};
+
+type Recipe = {
+  id: number;
   title: string;
-  description: string;
+  thumbnail_url: string;
+  ingredients: Ingredient[];
 };
 
 export default function RecipeExtractorPage() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [videoInfo, setVideo] = useState<VideoSnippet | null>(null);
+  const [videoInfo, setVideo] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -18,32 +26,20 @@ export default function RecipeExtractorPage() {
     setError('');
     setVideo(null);
     setLoading(true);
-
-    let videoId = '';
-
+    // ここでバックエンドのAPIにPOSTリクエストを送っている。
     try {
-      videoId = new URL(youtubeUrl).searchParams.get('v') ?? '';
-    } catch {
-      setError('URLが不正です');
-      setLoading(false);
-      return;
-    }
-    if (!videoId) {
-      setError('videoId を取得できません');
-      setLoading(false);
-      return;
-    }
+      const res = await fetch('http://localhost:3001/api/v1/recipes/youtube_api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ youtube_url: youtubeUrl }),
+      });
 
-    try {
-      const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${process.env.NEXT_PUBLIC_YOUTUBE_API_KEY}`
-      );
-      const data = await res.json();
-      if (data.items && data.items.length > 0) {
-        setVideo(data.items[0].snippet);
-      } else {
-        setError('動画が見つかりませんでした');
+      if (!res.ok) {
+        throw new Error('取得に失敗しました');
       }
+
+      const data = await res.json();
+      setVideo(data);
     } catch {
       setError('取得に失敗しました');
     } finally {
@@ -88,11 +84,19 @@ export default function RecipeExtractorPage() {
       {videoInfo && (
         <div className="bg-white shadow-md rounded px-8 pt-6 pb-8">
           <h2 className="text-xl font-bold mb-4">{videoInfo.title}</h2>
+
           <div className="p-4 bg-gray-50 border rounded">
-            <h3 className="font-bold text-lg mb-2 text-blue-600">抽出された材料</h3>
-            <p className="whitespace-pre-wrap text-gray-800">
-              {seachIngredients(videoInfo.description)}
-            </p>
+            <h3 className="font-bold text-lg mb-2 text-blue-600">
+              抽出された材料
+            </h3>
+
+            <ul>
+              {videoInfo.ingredients.map((ingredient) => (
+                <li key={ingredient.id}>
+                  {ingredient.name} - {ingredient.quantity}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
