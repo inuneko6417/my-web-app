@@ -1,6 +1,9 @@
 class Api::V1::RecipesController < ApplicationController
+  # レシピと材料を同時に保存するAPI
   def create
     # 1. 概要欄をAIに渡して構造化データに変換
+    # app/services/recipe_parser.rb 4行目を参照
+    # backend/app/services/recipe_parser.rb 10行目を参照 parse_ingredients
     ingredients_data = RecipeParser.parse_ingredients(params[:description])
 
     # 2. RecipeとIngredientsを同時に保存
@@ -17,6 +20,7 @@ class Api::V1::RecipesController < ApplicationController
     end
   end
 
+  # ここでyoutubeのURLを受け取り処理している。
   def youtube_api
     url = params[:youtube_url]
     return render json: { error: "youtube_url is required" }, status: :bad_request if url.blank?
