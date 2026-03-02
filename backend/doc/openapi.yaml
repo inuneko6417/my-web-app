@@ -6,7 +6,7 @@ info:
 servers: []
 
 paths:
-  "/api/v1/recipes/from_youtube":
+  "/api/v1/recipes/youtube_api":
     post:
       summary: Create recipe from YouTube URL
       tags:
