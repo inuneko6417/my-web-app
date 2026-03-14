@@ -47,13 +47,6 @@ export default function RecipeExtractorPage() {
     }
   };
 
-  const seachIngredients = (description: string) => {
-    // 【材料】または 材料 から始まり、次のセクションの開始（【作り方】、■、httpなど）までの範囲を抽出
-    const regex = /(?:【材料】|材料)[\s\S]*?(?=(?:【作り方】|作り方|■|http|$))/i;
-    const match = description.match(regex);
-    return match ? match[0].trim() : '材料セクションが見つかりませんでした。';
-  };
-
   return (
     <div className="container mx-auto p-4 max-w-2xl">
       <h1 className="text-3xl font-bold mb-6 text-center">
