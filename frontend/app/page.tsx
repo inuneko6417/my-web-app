@@ -35,7 +35,7 @@ export default function Home() {
         <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-8 pb-20">
           {[
             { title: "最速抽出", desc: "URLを貼るだけで材料リストが完成。", icon: "⚡" },
-            { title: "正確な分量", desc: "動画の内容をAIが精密に解析。", icon: "⚖️" },
+            { title: "正確な分量", desc: "動画の内容をAIに解析。", icon: "⚖️" },
             { title: "メモ帳いらず", desc: "一時停止を繰り返す必要はありません。", icon: "📝" },
           ].map((feature, i) => (
             <div key={i} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
