@@ -1,6 +1,6 @@
 # RecipeTube 
 
-YouTubeのレシピ動画URLから手順を自動抽出し、巻き戻さずに確認できるWebアプリ。
+YouTubeのレシピ動画URLから手順を自動抽出できるWebアプリ。
 
 **URL**: https://recipe-tube-azure.vercel.app/
 
