@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 
 type Ingredient = {
   id: number;
@@ -20,6 +20,14 @@ export default function RecipeExtractorPage() {
   const [videoInfo, setVideo] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (videoInfo) {
+      document.title = `${videoInfo.title} | RecipeTube`;
+    } else {
+      document.title = 'Recipetube検索 | RecipeTube';
+    }
+  }, [videoInfo]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
