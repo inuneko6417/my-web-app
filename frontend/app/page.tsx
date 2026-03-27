@@ -48,7 +48,7 @@ export default function Home() {
       </main>
 
       <footer className="mt-auto py-10 w-full text-center border-t bg-white">
-        <p className="text-gray-400 text-sm font-medium">© 2026 RecipeTube. </p>
+        <p className="text-gray-400 text-sm font-medium">© 2026 RecipeTube. <Link href="/privacy-policy" className="text-blue-500 hover:underline">プライバシーポリシー</Link></p>
       </footer>
     </div>
   );
