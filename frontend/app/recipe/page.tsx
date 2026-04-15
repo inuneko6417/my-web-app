@@ -77,6 +77,7 @@ export default function RecipeExtractorPage() {
           <label className="block text-sm font-bold mb-2">YouTube動画URL</label>
           <input
             type="url"
+            placeholder="https://www.youtube.com/watch?v=..."
             className="border rounded w-full py-2 px-3 mb-4"
             value={youtubeUrl}
             onChange={(e) => setYoutubeUrl(e.target.value)}
