@@ -12,6 +12,7 @@ type Recipe = {
   id: number;
   title: string;
   thumbnail_url: string;
+  video_id: string;
   ingredients: Ingredient[];
 };
 
@@ -86,18 +87,37 @@ export default function RecipeExtractorPage() {
         <div className="bg-white shadow-md rounded px-8 pt-6 pb-8">
           <h2 className="text-xl font-bold mb-4">{videoInfo.title}</h2>
 
+          <div className="aspect-video mb-6">
+            <iframe
+              className="w-full h-full rounded"
+              src={`https://www.youtube.com/embed/${videoInfo.video_id}`}
+              title={videoInfo.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+          <h3 className="font-bold text-lg mb-2 text-blue-600">
+            抽出された材料
+          </h3>
           <div className="p-4 bg-gray-50 border rounded">
-            <h3 className="font-bold text-lg mb-2 text-blue-600">
-              抽出された材料
-            </h3>
-
-            <ul>
+            <div className="grid gap-3">
               {videoInfo.ingredients.map((ingredient) => (
-                <li key={ingredient.id}>
-                  {ingredient.name} - {ingredient.quantity}
-                </li>
+                <div
+                  key={ingredient.id}
+                  className="group relative flex items-center justify-between p-4 bg-white hover:bg-orange-50/50 border border-gray-100 rounded-2xl transition-all hover:border-orange-200 hover:shadow-md"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-400 group-hover:scale-125 transition-transform" />
+                    <span className="text-gray-800 font-semibold group-hover:text-orange-950 transition-colors">
+                      {ingredient.name}
+                    </span>
+                  </div>
+                  <span className="px-3 py-1 bg-orange-50 text-orange-400 text-xs font-bold rounded-lg border border-orange-100 group-hover:bg-orange-600 group-hover:text-white transition-all">
+                    {ingredient.quantity}
+                  </span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       )}
